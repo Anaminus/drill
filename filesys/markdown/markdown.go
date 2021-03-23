@@ -60,6 +60,7 @@ func NewHandler(options ...goldmark.Option) filesys.HandlerFunc {
 
 // Node implements drill.Node.
 type Node struct {
+	root     *Node
 	section  ast.Node
 	source   []byte
 	renderer renderer.Renderer
@@ -67,12 +68,16 @@ type Node struct {
 
 // NewNode returns a Node that wraps the given ast.Node, source, and renderer.
 // root is assumed to be an ast.Document or a Section.
+//
+// The node created by NewNode is treated as the root. Nodes that derive from
+// the root will point back to the root.
 func NewNode(root ast.Node, source []byte, renderer renderer.Renderer) *Node {
 	node := &Node{
 		section:  root,
 		source:   source,
 		renderer: renderer,
 	}
+	node.root = node
 	return node
 }
 
@@ -81,6 +86,15 @@ func (n *Node) derive(section ast.Node) *Node {
 	d := *n
 	d.section = section
 	return &d
+}
+
+// Root returns the original root Node from which the current node derives, or
+// the node itself, if it is the root.
+func (n *Node) Root() *Node {
+	if n.root == nil {
+		return n
+	}
+	return n.root
 }
 
 // Node returns the wrapped ast.Node.

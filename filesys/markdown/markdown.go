@@ -152,6 +152,13 @@ func (n *Node) FragmentReader() (r io.ReadCloser, err error) {
 	return r, nil
 }
 
+// WithRenderer returns a copy of the node that uses the given renderer.
+func (n *Node) WithRenderer(r renderer.Renderer) *Node {
+	d := *n
+	d.renderer = r
+	return &d
+}
+
 // Len returns the number of child Sections.
 func (n *Node) Len() int {
 	var count int

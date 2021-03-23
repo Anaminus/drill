@@ -33,23 +33,23 @@ import (
 // an "orphaned" section. The name of this section is an empty string, and will
 // be the first child section.
 func NewHandler(options ...goldmark.Option) filesys.HandlerFunc {
+	options = append(options,
+		goldmark.WithParserOptions(
+			parser.WithASTTransformers(
+				util.Prioritized(NewSectionTransformer(), 2000),
+			),
+		),
+		goldmark.WithRendererOptions(
+			renderer.WithNodeRenderers(
+				util.Prioritized(NewSectionRenderer(), 2000),
+			),
+		),
+	)
 	return func(fsys fs.FS, name string) drill.Node {
 		b, err := fs.ReadFile(fsys, name)
 		if err != nil {
 			return nil
 		}
-		options = append(options,
-			goldmark.WithParserOptions(
-				parser.WithASTTransformers(
-					util.Prioritized(NewSectionTransformer(), 2000),
-				),
-			),
-			goldmark.WithRendererOptions(
-				renderer.WithNodeRenderers(
-					util.Prioritized(NewSectionRenderer(), 2000),
-				),
-			),
-		)
 		md := goldmark.New(options...)
 		parser := md.Parser()
 		root := parser.Parse(text.NewReader(b))
